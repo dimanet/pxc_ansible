@@ -1,0 +1,7 @@
+---
+
+- hosts: percona
+  roles:
+#     - mount
+#     - percona
+      - pcx-cluster

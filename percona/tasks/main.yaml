@@ -1,0 +1,70 @@
+---
+
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+
+- name: install openssl
+
+  yum:
+    name: openssl
+    state: latest
+
+- name: install python-mysql
+  yum:
+    name: MySQL-python
+    state: latest
+
+- name: Add yum percona PCX repo
+
+  yum:
+    name: http://www.percona.com/downloads/percona-release/redhat/{{ percona_release }}/percona-release-{{ percona_release}}.noarch.rpm
+    state: present
+
+- name: install percona rpm
+    
+  yum:
+    name: Percona-XtraDB-Cluster-57
+    state: present
+
+- name: switch make datadir
+
+  file:
+    path: /data/mysqldata
+    owner: mysql
+    group: mysql
+    state: directory
+    mode: 0755
+
+- name:
+
+  lineinfile:
+    path: /etc/percona-xtradb-cluster.conf.d/mysqld.cnf
+    state: present
+    regexp: '^datadir=/var/lib/mysql'
+    line: datadir=/data/mysqldata
+
+- name: start mysqld 
+
+  systemd:
+    name: mysqld
+    state: started
+
+#- name: Adds replication user
+#  mysql_user:
+#    priv: "*.*:GRANT,RELOAD,REPLICATION CLIENT,LOCK TABLES,PROCESS"
+#    user: "sstuser"
+#    password: "6GhRCMwX"
+#    login_host: localhost
+#    login_user: "root"
+#    login_password: "superPass"
+#    state: present
+#  ignore_errors: true
+
+- name: stop  mysqld
+
+  systemd:
+    name: mysqld
+    state: stopped
+

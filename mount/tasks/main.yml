@@ -1,0 +1,44 @@
+- name: make new partition on data disk
+  parted:
+    device: /dev/{{ SD_ID }}
+    number: 1
+    flags: [ lvm ]
+    state: present
+  become: true
+
+- name: LVM config part 1
+  lvg:
+    vg: vg.data
+    pvs: /dev/{{ SD_ID }}1
+  become: true
+
+- name: LVM config part 2
+  lvol:
+    vg: vg.data
+    lv: fastone
+    size: 100%FREE
+    shrink: no
+  become: true
+
+- name: Formatting XFS
+  filesystem:
+    fstype: xfs
+    force: yes
+    dev: /dev/mapper/vg.data-fastone
+  become: true
+
+- name: Make mount path
+  file:
+    path: /data
+    state: directory
+    mode: 755
+  become: true
+
+- name: Add to fstab
+  mount:
+    path: /data/
+    src: /dev/mapper/vg.data-fastone
+    fstype: xfs
+    opts: rw
+    state: mounted
+  become: true

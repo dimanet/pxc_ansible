@@ -1,0 +1,45 @@
+#- name: get percona default root password
+
+#  shell: "grep password /var/log/mysqld.log | awk -F ' ' '{print $11}'"
+#  register: root_passwd
+
+#- name: debug
+
+#  debug:
+#    var: root_passwd.stdout_lines
+
+#- name: mysql change root password
+#  shell: "mysqladmin -u root -p {{ root_passwd.stdout_lines[0] }} superPass"
+
+- name: Fix wresp node IP
+
+  lineinfile:
+    path: /etc/percona-xtradb-cluster.conf.d/wsrep.cnf
+    state: present
+    regexp: '^#wsrep_node_address='
+    line: wsrep_node_address={{ ansible_all_ipv4_addresses[0] }}
+
+- name: Fix wresp cluster IP list
+
+  lineinfile:
+    path: /etc/percona-xtradb-cluster.conf.d/wsrep.cnf
+    state: present
+    regexp: '^wsrep_cluster_address=gcomm://'
+    line: wsrep_cluster_address="gcomm://{{ cluster_hosts }}"
+
+
+- name:
+
+  lineinfile:
+    path: /etc/percona-xtradb-cluster.conf.d/wsrep.cnf
+    state: present
+    regexp: '^wsrep_node_name=pxc-cluster-node-1'
+    line: wsrep_node_name=pxc-cluster-node-{{ cluster_id }}
+
+- name: enable wresp auth
+
+  lineinfile:
+    path: /etc/percona-xtradb-cluster.conf.d/wsrep.cnf
+    state: present
+    regexp: '^#wsrep_sst_auth="sstuser:s3cretPass"'
+    line: wsrep_sst_auth="sstuser:6GhRCMwX"
